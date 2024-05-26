@@ -1,0 +1,61 @@
+cd autodl-tmp/pyskl
+
+git clone https://github.com/kennymckormick/pyskl.git
+cd pyskl
+# This command runs well with conda 22.9.0, if you are running an early conda version and got some errors, try to update your conda first
+conda env create -f pyskl.yaml
+conda activate pyskl
+pip install -e .
+
+set $CUDA_HOME = D:\pythonEnv\cuda\cuda113
+
+PoseC3D-C3D
+python3 tools/train.py configs/posec3d/slowonly_r50_ntu120_xsub/joint.py  --validate
+
+bash tools/dist_train.sh configs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b.py 1 --validate
+bash tools/dist_train.sh configs/stgcn/xsub/nostr/config.py 1 --validate
+bash tools/dist_train.sh configs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b.py 2 --validate
+bash tools/dist_train.sh configs/stgcn/stgcn_pyskl_ntu120_xset_hrnet/b.py 2 --validate
+bash tools/dist_train.sh configs/stgcn++/stgcn++_ntu120_xsub_hrnet/b.py 2 --validate
+bash tools/dist_train.sh configs/stgcn++/stgcn++_ntu120_xset_hrnet/b.py 2 --validate
+bash tools/dist_train.sh configs/posec3d/slowonly_r50_ntu120_xset/limb.py 2  --validate
+bash tools/dist_train.sh configs/posec3d/c3d_light_ntu120_xsub/joint.py 1 --validate
+bash tools/dist_train.sh configs/posec3d/c3d/xsub/noflip/config.py 1 --validate
+bash tools/dist_train.sh configs/posec3d/slowonly_r50_ntu120_xsub/joint.py 1 --validate
+
+bash tools/dist_train.sh configs/posec3d/c3d_fc/joint.py 1 --validate
+
+python demo/demo_skeleton.py 
+	demo/videos/point.mp4 demo/videos/point_out.mp4
+	demo/videos/takeoff.mp4 demo/videos/takeoff_out.mp4
+	demo/videos/OK.mp4 demo/videos/OK_out.mp4
+	demo/videos/putin.mp4 demo/videos/putin_out.mp4
+	demo/videos/takeoffglass.mp4 demo/videos/takeoffglass_out.mp4
+	demo/videos/wearglass.mp4 demo/videos/wearglass_out.mp4
+	demo/videos/salute.mp4 demo/videos/salute_out.mp4
+python demo/demo_skeleton.py demo/videos/phonecall.mp4 demo/videos/phonecall_out.mp4 --hpe-category bottomup --config configs/posec3d/slowonly_r50_ntu120_xsub/joint.py --checkpoint work_dirs/posec3d/slowonly_r50_ntu120_xsub/joint/best_top1_acc_epoch_24.pth --pose-config demo/LwOpenPose/config.py --pose-checkpoint demo/LwOpenPose/model.pth --device cpu
+
+	--config configs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b.py --checkpoint work_dirs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b-6_ChangeSkeletonConnections-Cliplen100-Numclips10/best_top1_acc_epoch_16.pth
+	--config configs/stgcn++/stgcn++_ntu120_xset_hrnet/b.py --checkpoint work_dirs/stgcn++/stgcn++_ntu120_xset_hrnet/b/best_top1_acc_epoch_16.pth
+	--config configs/posec3d/slowonly_r50_ntu120_xsub/joint.py --checkpoint work_dirs/posec3d/slowonly_r50_ntu120_xsub/joint/best_top1_acc_epoch_24.pth
+	
+	--pose-config demo/HRNet32/config.py --pose-checkpoint demo/HRNet32/model.pth
+	--pose-config demo/LiteHRNet18/config.py --pose-checkpoint demo/LiteHRNet18/model.pth
+
+	--det-config demo/YOLOXI/config.py --det-checkpoint demo/YOLOXI/model.pth
+		
+	--config configs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b.py --checkpoint work_dirs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b-6_ChangeSkeletonConnections-Cliplen100-Numclips10/best_top1_acc_epoch_16.pth --pose-config demo/LiteHRNet18/config.py --pose-checkpoint demo/LiteHRNet18/model.pth --det-config demo/YOLOXI/config.py --det-checkpoint demo/YOLOXI/model.pth
+	--config configs/posec3d/slowonly_r50_ntu120_xsub/joint.py --checkpoint work_dirs/posec3d/slowonly_r50_ntu120_xsub/joint/best_top1_acc_epoch_24.pth --pose-config demo/LiteHRNet18/config.py --pose-checkpoint demo/LiteHRNet18/model.pth --det-config demo/YOLOXS/config.py --det-checkpoint demo/YOLOXS/model.pth
+	--hpe-category bottomup --config configs/posec3d/slowonly_r50_ntu120_xsub/joint.py --checkpoint work_dirs/posec3d/slowonly_r50_ntu120_xsub/joint/best_top1_acc_epoch_24.pth --pose-config demo/LwOpenPose/config.py --pose-checkpoint demo/LwOpenPose/model.pth --device cpu
+	
+
+
+bash tools/dist_test.sh configs/stgcn/xset/b.py  work_dirs/stgcn/xset/b-1/best_top1_acc_epoch_16.pth 1
+bash tools/dist_test.sh work_dirs/posec3d/c3dxset/str/limb.py work_dirs/posec3d/c3dxset/str/best_top1_acc_epoch_24.pth 1
+bash tools/dist_test.sh configs/posec3d/c3d/xsub/basic/config.py work_dirs/posec3d/c3d/xsub/basic/model.pth 1
+bash tools/dist_test.sh configs/stgcn/xsub/str/config.py work_dirs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b-6_Change-skeleton-connections-Cliplen100-Numclips10/best_top1_acc_epoch_16.pth 1
+bash tools/dist_test.sh work_dirs/posec3d/c3dxsub/nostr/config.py work_dirs/posec3d/c3dxsub/nostr/model.pth 1
+bash tools/dist_test.sh work_dirs/posec3d/c3dxsub/str/config.py work_dirs/posec3d/c3dxsub/str/model.pth 1
+bash tools/dist_test.sh work_dirs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b-1/b.py work_dirs/stgcn/stgcn_pyskl_ntu120_xset_hrnet/b-1/best_top1_acc_epoch_16.pth 1 
+bash tools/dist_test.sh work_dirs/posec3d/c3d_light_ntu120_xsub/limb/str/joint.py work_dirs/posec3d/c3d_light_ntu120_xsub/limb/str/epoch24.pth 1 
+                                                                                                                work_dirs/stgcn/stgcn_pyskl_ntu120_xsub_hrnet/b/stgcn_pyskl_ntu120_xsub_hrnet/best_top1_acc_epoch_16.pth can not be found.
